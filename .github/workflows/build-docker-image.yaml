@@ -1,0 +1,51 @@
+name: Build Image
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+    paths:
+      - chart/Chart.yaml
+    #   - src/*
+    #   - .github/workflows/build-docker-image.yaml
+
+jobs:
+  resolve-versions:
+    name: Resolve versions
+    runs-on: ubuntu-latest
+    outputs:
+      chart-version: ${{ steps.resolve-chart.outputs.semver }}
+      image-tag: ${{ steps.resolve-image.outputs.semver }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Resolve chart version
+        id: resolve-chart
+        uses: Energinet-DataHub/.github/.github/actions/get-semver@main
+        with:
+          yaml_file: chart/Chart.yaml
+          yaml_path: version
+
+      - name: Resolve image version
+        id: resolve-image
+        uses: Energinet-DataHub/.github/.github/actions/get-semver@main
+        with:
+          yaml_file: chart/Chart.yaml
+          yaml_path: appVersion
+
+  publish:
+    name: Publish container
+    needs:
+      - resolve-versions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build image
+        uses: Energinet-DataHub/.github/.github/actions/build-and-push-container@main
+        with:
+          dockerfile: Dockerfile
+          image-name: test-chart
+          image-tag: ${{ needs.resolve-versions.outputs.image-tag }}
+          docker-context: .
