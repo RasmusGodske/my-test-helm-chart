@@ -62,4 +62,4 @@ jobs:
           dockerfile: ${{ env.DOCKER_FILE_PATH }}
           image-name: ${{ env.DOCKER_IMAGE_NAME }}
           image-tag: ${{ needs.resolve-versions.outputs.image-tag }}
-          docker-context: ${{ env.DOCKER_CONTEXT }}
+          docker-context: .
